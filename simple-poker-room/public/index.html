@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a563f">
+  <meta name="description" content="无需注册的多人扑克牌房间，支持随机发牌和积分转让。">
+  <title>一起玩牌 - 多人扑克牌房间</title>
+  <style>
+    :root { color-scheme: light; --green:#0a563f; --green-dark:#073e2f; --felt:#0d684b; --gold:#f0c66a; --ink:#17221d; --muted:#718078; --line:#e6ebe7; --paper:#fff; --bg:#f4f7f4; --red:#d83948; }
+    * { box-sizing:border-box; }
+    html { min-height:100%; background:var(--bg); }
+    body { margin:0; color:var(--ink); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#edf5ef 0,#f7f8f6 300px); min-height:100vh; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; border:0; }
+    button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #f0c66a; outline-offset:2px; }
+    .topbar { padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:1180px; margin:auto; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:.3px; font-size:20px; color:var(--green-dark); }
+    .brand-mark { width:40px; height:40px; border-radius:13px; display:grid; place-items:center; background:var(--green); color:white; font-size:25px; box-shadow:0 5px 12px #073e2f22; }
+    .top-note { color:#597166; font-size:13px; }
+    main { max-width:1180px; margin:0 auto; padding:10px 20px 40px; }
+    .welcome { text-align:center; margin:30px auto 26px; max-width:650px; }
+    .welcome h1 { font-size:clamp(28px,5vw,44px); margin:0 0 10px; letter-spacing:-1px; color:var(--green-dark); }
+    .welcome p { color:#64766c; margin:0; line-height:1.7; }
+    .home-grid { max-width:780px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:24px; box-shadow:0 10px 30px #17362908; }
+    .panel h2 { font-size:19px; margin:0 0 6px; }
+    .panel .desc { font-size:13px; color:var(--muted); margin:0 0 20px; }
+    label { display:block; font-size:13px; color:#56675e; margin:12px 0 7px; font-weight:650; }
+    input,select { width:100%; min-width:0; border:1px solid #dce5de; background:#fbfcfb; color:var(--ink); border-radius:11px; padding:12px 13px; }
+    input::placeholder { color:#a1ada5; }
+    .btn { border-radius:11px; padding:12px 16px; font-weight:750; transition:transform .12s,background .12s; }
+    .btn:active { transform:scale(.985); }
+    .btn-primary { color:white; background:var(--green); }
+    .btn-primary:hover { background:var(--green-dark); }
+    .btn-secondary { color:var(--green-dark); background:#e9f3ec; }
+    .btn-secondary:hover { background:#dcece1; }
+    .btn-plain { color:#5b6b62; background:#f1f4f1; }
+    .btn-full { width:100%; margin-top:16px; }
+    .fineprint { text-align:center; color:#7d8a82; font-size:12px; margin:18px auto 0; }
+    .hidden { display:none !important; }
+    .room-head { display:flex; justify-content:space-between; align-items:center; gap:16px; background:var(--green-dark); color:white; padding:20px 22px; border-radius:18px; box-shadow:0 12px 30px #073e2f20; }
+    .room-head h1 { margin:0 0 5px; font-size:23px; }
+    .room-sub { color:#d0e1d8; font-size:13px; }
+    .room-actions { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+    .code-pill { font-size:21px; font-weight:850; letter-spacing:3px; color:#fff0bd; background:#ffffff18; border:1px solid #ffffff30; padding:9px 12px; border-radius:10px; }
+    .room-layout { margin-top:17px; display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr); gap:17px; align-items:start; }
+    .table-panel { padding:20px; }
+    .section-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:15px; }
+    .section-head h2 { font-size:18px; margin:0; }
+    .round-pill { background:#edf5ef; color:var(--green); font-size:12px; font-weight:750; padding:6px 10px; border-radius:999px; white-space:nowrap; }
+    .status-line { background:#f6f8f6; border:1px solid #e9eee9; border-radius:12px; padding:12px 14px; color:#53645a; font-size:13px; margin-bottom:15px; line-height:1.55; }
+    .players-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+    .player-card { border:1px solid #e5ebe6; border-radius:15px; padding:14px; min-width:0; background:#fff; }
+    .player-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:12px; }
+    .player-name-wrap { display:flex; gap:9px; align-items:center; min-width:0; }
+    .avatar { width:34px; height:34px; flex:0 0 34px; border-radius:11px; display:grid; place-items:center; color:#fff; background:var(--green); font-weight:850; }
+    .player-name { font-weight:800; overflow-wrap:anywhere; }
+    .you-tag { font-size:10px; padding:2px 5px; background:#eaf4ed; color:var(--green); border-radius:5px; margin-left:4px; vertical-align:2px; white-space:nowrap; }
+    .player-meta { margin-top:3px; font-size:12px; color:#7a8980; }
+    .score { font-weight:900; font-size:18px; color:var(--green); white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .score.negative { color:var(--red); }
+    .ready-tag { font-size:11px; font-weight:750; white-space:nowrap; padding:5px 7px; border-radius:8px; background:#f1f3f1; color:#65736a; }
+    .ready-tag.yes { background:#e4f5e9; color:#187449; }
+    .cards { display:flex; flex-wrap:wrap; gap:6px; min-height:88px; align-items:flex-start; }
+    .playing-card { width:42px; height:66px; border:1px solid #dfe4e0; border-radius:7px; background:linear-gradient(145deg,#fff,#fafbf9); box-shadow:0 2px 3px #14251a0c; position:relative; display:flex; flex-direction:column; justify-content:space-between; padding:5px 4px; line-height:1; flex:0 0 auto; }
+    .playing-card.red { color:#d72c42; }
+    .playing-card.black { color:#1d2923; }
+    .card-rank { font-size:14px; font-weight:900; }
+    .card-suit { font-size:17px; text-align:center; }
+    .card-bottom { align-self:flex-end; transform:rotate(180deg); font-size:11px; font-weight:800; }
+    .no-cards { min-height:83px; display:flex; align-items:center; justify-content:center; text-align:center; color:#8b9890; font-size:12px; border:1px dashed #dfe7e0; background:#fafcfa; border-radius:10px; padding:12px; width:100%; }
+    .player-bottom { display:flex; justify-content:space-between; gap:8px; font-size:11px; color:#718078; margin-top:11px; }
+    .my-ready { display:flex; justify-content:space-between; align-items:center; gap:14px; background:#fffaf0; border:1px solid #f4e6c6; padding:15px; border-radius:14px; margin-top:15px; }
+    .my-ready strong { display:block; margin-bottom:3px; }
+    .my-ready small { color:#7d7259; line-height:1.4; }
+    .ready-button { white-space:nowrap; min-width:120px; }
+    .side-column { display:grid; gap:16px; }
+    .transfer-form { display:grid; grid-template-columns:minmax(0,1fr) 105px; gap:10px; align-items:end; }
+    .transfer-form .wide { grid-column:1 / -1; }
+    .transfer-form label { margin-top:0; }
+    .transfer-form button { width:100%; }
+    .transfer-help { font-size:12px; color:#7b8880; margin:12px 0 0; line-height:1.5; }
+    .log-list { display:grid; gap:10px; }
+    .log-item { display:flex; align-items:flex-start; gap:9px; font-size:12px; color:#65736a; line-height:1.55; }
+    .log-dot { width:7px; height:7px; border-radius:50%; flex:0 0 7px; margin-top:5px; background:#80b296; }
+    .empty-log { color:#8b9890; font-size:12px; }
+    .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:20; color:white; background:#1d2d24; border-radius:12px; padding:12px 17px; box-shadow:0 8px 25px #0002; max-width:calc(100% - 32px); font-size:14px; }
+    .footer { text-align:center; padding:22px 10px 0; color:#96a198; font-size:11px; }
+    @media (max-width:760px) {
+      .topbar { padding:14px 15px; }
+      main { padding:8px 13px 28px; }
+      .welcome { margin:20px auto 20px; }
+      .home-grid { grid-template-columns:1fr; gap:12px; }
+      .panel { padding:19px; border-radius:16px; }
+      .room-head { align-items:flex-start; flex-direction:column; padding:17px; }
+      .room-actions { width:100%; justify-content:space-between; }
+      .room-layout { grid-template-columns:1fr; gap:13px; }
+      .players-grid { grid-template-columns:1fr; }
+      .table-panel { padding:14px; }
+      .player-card { padding:13px; }
+      .playing-card { width:48px; height:70px; }
+      .cards { gap:7px; }
+      .my-ready { align-items:flex-start; flex-direction:column; }
+      .ready-button { width:100%; }
+      .top-note { display:none; }
+    }
+    @media (min-width:761px) and (max-width:980px) { .room-layout { grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr); } .players-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">♠</div><span>一起玩牌</span></div>
+    <div class="top-note">免登录 · 多人实时房间 · 手机电脑都能玩</div>
+  </header>
+
+  <main>
+    <section id="homeView">
+      <div class="welcome">
+        <h1>简单开一局</h1>
+        <p>创建房间，把房间号发给朋友。大家准备好后，每人随机发 5 张牌，所有人都能看到。</p>
+      </div>
+      <div class="home-grid">
+        <div class="panel">
+          <h2>创建新房间</h2>
+          <p class="desc">你会自动进入房间，并获得一个6位房间号。</p>
+          <label for="createName">你的昵称</label>
+          <input id="createName" maxlength="12" placeholder="例如：小王" autocomplete="nickname">
+          <button id="createBtn" class="btn btn-primary btn-full">＋ 创建房间</button>
+        </div>
+        <div class="panel">
+          <h2>加入朋友的房间</h2>
+          <p class="desc">输入朋友发给你的房间号即可进入。</p>
+          <label for="joinName">你的昵称</label>
+          <input id="joinName" maxlength="12" placeholder="例如：玩家A" autocomplete="nickname">
+          <label for="roomCodeInput">6位房间号</label>
+          <input id="roomCodeInput" maxlength="6" placeholder="例如：K8M2PQ" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:2px">
+          <button id="joinBtn" class="btn btn-primary btn-full">进入房间 →</button>
+        </div>
+      </div>
+      <p class="fineprint">标准52张扑克牌（不含大小王）· 每个房间最多10人 · 积分可以为负数</p>
+    </section>
+
+    <section id="roomView" class="hidden">
+      <div class="room-head">
+        <div>
+          <h1>牌桌房间</h1>
+          <div id="roomSub" class="room-sub">等待玩家加入…</div>
+        </div>
+        <div class="room-actions">
+          <div id="roomCodeDisplay" class="code-pill">------</div>
+          <button id="copyCodeBtn" class="btn btn-secondary">复制房间号</button>
+          <button id="leaveBtn" class="btn btn-plain">退出房间</button>
+        </div>
+      </div>
+
+      <div class="room-layout">
+        <section class="panel table-panel">
+          <div class="section-head">
+            <h2>玩家与手牌</h2>
+            <span id="roundPill" class="round-pill">尚未发牌</span>
+          </div>
+          <div id="statusLine" class="status-line" role="status">至少2名玩家进入后即可准备。</div>
+          <div id="playersGrid" class="players-grid"></div>
+          <div class="my-ready">
+            <div><strong id="readyTitle">准备开始</strong><small id="readyHelp">至少需要2名玩家，所有人都准备后自动发牌。</small></div>
+            <button id="readyBtn" class="btn btn-primary ready-button">我准备好了</button>
+          </div>
+        </section>
+
+        <aside class="side-column">
+          <section class="panel">
+            <div class="section-head"><h2>积分转让</h2></div>
+            <p class="desc">给房间里的其他玩家转积分。</p>
+            <form id="transferForm" class="transfer-form">
+              <div class="wide">
+                <label for="recipientSelect">转给谁</label>
+                <select id="recipientSelect" required><option value="">选择玩家</option></select>
+              </div>
+              <div>
+                <label for="amountInput">转让积分</label>
+                <input id="amountInput" type="number" min="1" max="1000000" step="1" placeholder="例如 10" required>
+              </div>
+              <div><button class="btn btn-primary" type="submit">确认转让</button></div>
+            </form>
+            <p class="transfer-help">转让后，转出者扣除相同积分，接收者增加相同积分。余额不足也可以转，分数允许为负数。</p>
+          </section>
+          <section class="panel">
+            <div class="section-head"><h2>房间动态</h2></div>
+            <div id="logList" class="log-list"><div class="empty-log">房间创建后，动态会显示在这里。</div></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+    <div class="footer">无需注册或安装 · 使用房间号邀请朋友 · 当前房间数据保存在服务器运行期间</div>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const $ = id => document.getElementById(id);
+      const socket = io();
+      const storedKey = localStorage.getItem('simple_poker_client_key');
+      const clientKey = storedKey && /^[a-zA-Z0-9_-]{8,80}$/.test(storedKey)
+        ? storedKey
+        : (window.crypto && typeof window.crypto.randomUUID === 'function'
+          ? window.crypto.randomUUID().replace(/-/g, '')
+          : 'player_' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+      localStorage.setItem('simple_poker_client_key', clientKey);
+      let currentRoom = null;
+      let myPlayerId = clientKey;
+      let latestState = null;
+      let toastTimer = null;
+
+      function toast(message) {
+        const node = $('toast');
+        node.textContent = message;
+        node.classList.remove('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => node.classList.add('hidden'), 2600);
+      }
+      function makeDefaultName() { return '玩家' + Math.floor(10 + Math.random() * 90); }
+      function nameFrom(inputId) { return $(inputId).value.trim().slice(0, 12) || makeDefaultName(); }
+      function setBusy(isBusy) {
+        $('createBtn').disabled = isBusy;
+        $('joinBtn').disabled = isBusy;
+        $('createBtn').style.opacity = isBusy ? '.65' : '1';
+        $('joinBtn').style.opacity = isBusy ? '.65' : '1';
+      }
+      function enterRoomUi(code) {
+        currentRoom = code;
+        $('homeView').classList.add('hidden');
+        $('roomView').classList.remove('hidden');
+        $('roomCodeDisplay').textContent = code;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      function sendWithCallback(eventName, payload) {
+        return new Promise(resolve => {
+          if (!socket.connected) { resolve({ ok: false, error: '网络连接中，请稍后再试' }); return; }
+          socket.timeout(7000).emit(eventName, payload, (err, response) => {
+            if (err) resolve({ ok: false, error: '服务器暂时没有响应，请重试' });
+            else resolve(response || { ok: false, error: '服务器返回异常' });
+          });
+        });
+      }
+
+      $('createBtn').addEventListener('click', async () => {
+        setBusy(true);
+        const response = await sendWithCallback('createRoom', { clientKey, name: nameFrom('createName') });
+        setBusy(false);
+        if (!response.ok) { toast(response.error); return; }
+        myPlayerId = response.playerId || clientKey;
+        enterRoomUi(response.code);
+        if (latestState && latestState.code === response.code) render(latestState);
+        toast('房间创建成功，把房间号发给朋友吧！');
+      });
+      $('joinBtn').addEventListener('click', async () => {
+        const code = $('roomCodeInput').value.trim().toUpperCase();
+        if (!/^[A-Z0-9]{6}$/.test(code)) { toast('请输入6位房间号'); return; }
+        setBusy(true);
+        const response = await sendWithCallback('joinRoom', { clientKey, code, name: nameFrom('joinName') });
+        setBusy(false);
+        if (!response.ok) { toast(response.error); return; }
+        myPlayerId = response.playerId || clientKey;
+        enterRoomUi(response.code);
+        if (latestState && latestState.code === response.code) render(latestState);
+        toast('加入房间成功！');
+      });
+      $('roomCodeInput').addEventListener('input', event => { event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
+      $('copyCodeBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(currentRoom || '');
+          toast('房间号已复制，发给朋友即可');
+        } catch (_) {
+          const range = document.createRange();
+          range.selectNodeContents($('roomCodeDisplay'));
+          const selection = window.getSelection();
+          selection.removeAllRanges(); selection.addRange(range);
+          toast('复制功能不可用，请长按房间号复制');
+        }
+      });
+      $('leaveBtn').addEventListener('click', async () => {
+        await sendWithCallback('leaveRoom', {});
+        currentRoom = null;
+        latestState = null;
+        $('roomView').classList.add('hidden');
+        $('homeView').classList.remove('hidden');
+        $('playersGrid').replaceChildren();
+        $('logList').replaceChildren();
+        toast('已退出房间');
+      });
+      $('readyBtn').addEventListener('click', async () => {
+        const response = await sendWithCallback('setReady', {});
+        if (!response.ok) toast(response.error);
+      });
+      $('transferForm').addEventListener('submit', async event => {
+        event.preventDefault();
+        const to = $('recipientSelect').value;
+        const amount = Number($('amountInput').value);
+        if (!to) { toast('请选择要转给的玩家'); return; }
+        if (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000000) { toast('请输入1到1000000之间的整数'); return; }
+        const response = await sendWithCallback('transferPoints', { to, amount });
+        if (!response.ok) { toast(response.error); return; }
+        $('amountInput').value = '';
+        toast('积分转让成功');
+      });
+
+      function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+      function drawCard(card) {
+        const node = el('div', 'playing-card ' + (card.color === 'red' ? 'red' : 'black'));
+        node.setAttribute('aria-label', card.suit + card.rank);
+        node.append(el('span', 'card-rank', card.rank));
+        node.append(el('span', 'card-suit', card.symbol));
+        node.append(el('span', 'card-bottom', card.rank));
+        return node;
+      }
+      function renderPlayers(state) {
+        const grid = $('playersGrid');
+        const before = $('recipientSelect').value;
+        grid.replaceChildren();
+        for (const player of state.players) {
+          const card = el('article', 'player-card');
+          const top = el('div', 'player-top');
+          const nameWrap = el('div', 'player-name-wrap');
+          nameWrap.append(el('div', 'avatar', Array.from(player.name)[0] || '玩'));
+          const nameColumn = el('div');
+          const nameLine = el('div', 'player-name');
+          nameLine.append(document.createTextNode(player.name));
+          if (player.id === myPlayerId) nameLine.append(el('span', 'you-tag', '我'));
+          nameColumn.append(nameLine);
+          nameColumn.append(el('div', 'player-meta', player.online ? '在线' : '暂时离线'));
+          nameWrap.append(nameColumn);
+          const score = el('div', 'score' + (player.score < 0 ? ' negative' : ''), (player.score > 0 ? '+' : '') + player.score);
+          score.title = '当前积分';
+          top.append(nameWrap, score);
+          card.append(top);
+          const cards = el('div', 'cards');
+          if (player.cards && player.cards.length) {
+            for (const poker of player.cards) cards.append(drawCard(poker));
+          } else {
+            cards.append(el('div', 'no-cards', state.round === 0 ? '等待本局发牌' : '等待下一局发牌'));
+          }
+          card.append(cards);
+          const bottom = el('div', 'player-bottom');
+          bottom.append(el('span', '', (player.cards || []).length ? `${player.cards.length} 张牌` : '暂无手牌'));
+          const ready = el('span', 'ready-tag' + (player.ready ? ' yes' : ''), player.ready ? '已准备' : (player.online ? '未准备' : '离线'));
+          bottom.append(ready);
+          card.append(bottom);
+          grid.append(card);
+        }
+        const select = $('recipientSelect');
+        select.replaceChildren();
+        select.append(el('option', '', '选择玩家'));
+        for (const player of state.players) {
+          if (player.id === myPlayerId) continue;
+          const option = el('option', '', `${player.name}（${player.score}分）${player.online ? '' : ' · 离线'}`);
+          option.value = player.id;
+          option.disabled = !player.online;
+          select.append(option);
+        }
+        if ([...select.options].some(option => option.value === before && !option.disabled)) select.value = before;
+      }
+      function renderLogs(logs) {
+        const list = $('logList');
+        list.replaceChildren();
+        if (!logs || logs.length === 0) { list.append(el('div', 'empty-log', '暂时没有动态。')); return; }
+        for (const item of logs) {
+          const row = el('div', 'log-item');
+          row.append(el('span', 'log-dot'));
+          const body = el('div', '', item.message);
+          row.append(body);
+          list.append(row);
+        }
+      }
+      function render(state) {
+        latestState = state;
+        if (!currentRoom || currentRoom !== state.code) return;
+        $('roomSub').textContent = `${state.players.length}/${state.maxPlayers} 名玩家 · 分享房间号邀请朋友加入`;
+        $('roundPill').textContent = state.round > 0 ? `第 ${state.round} 局` : '尚未发牌';
+        const me = state.players.find(player => player.id === myPlayerId);
+        const allOnlineReady = state.players.length >= 2 && state.players.every(player => player.ready && player.online);
+        const readyCount = state.players.filter(player => player.ready && player.online).length;
+        if (state.round === 0) {
+          $('statusLine').textContent = state.players.length < 2
+            ? '等待朋友加入。至少需要2名在线玩家，才能开始第一局。'
+            : `已有 ${state.players.length} 名玩家，${readyCount} 人准备好了；所有房间成员都在线且准备后自动发牌。`;
+        } else {
+          $('statusLine').textContent = `第 ${state.round} 局已发牌。当前 ${readyCount}/${state.players.length} 人准备下一局；所有房间成员都在线且准备后会重新随机发5张牌。`;
+        }
+        if (me) {
+          $('readyTitle').textContent = me.ready ? '你已经准备好了' : (state.round === 0 ? '准备开始第一局' : '准备下一局');
+          $('readyHelp').textContent = state.players.length < 2
+            ? '等至少一位朋友进房间后，就可以开始。'
+            : (me.ready ? '点击按钮可以取消准备；等其他人准备好后自动发牌。' : '所有玩家准备好后自动发牌，每人5张，全部公开可见。');
+          $('readyBtn').textContent = me.ready ? '取消准备' : (state.round === 0 ? '我准备好了' : '准备下一局');
+          $('readyBtn').disabled = state.players.length < 2;
+          $('readyBtn').classList.toggle('btn-secondary', !!me.ready);
+          $('readyBtn').classList.toggle('btn-primary', !me.ready);
+        }
+        renderPlayers(state);
+        renderLogs(state.logs);
+      }
+      socket.on('roomState', render);
+      socket.on('connect', () => {
+        // 断线重连时，如果仍在房间，使用同一浏览器身份重新加入，以恢复座位和分数。
+        if (!currentRoom) return;
+        const nameInput = $('createName').value.trim() || $('joinName').value.trim() || makeDefaultName();
+        socket.emit('joinRoom', { clientKey, code: currentRoom, name: nameInput }, response => {
+          if (response && response.ok) { myPlayerId = response.playerId || clientKey; }
+          else if (response && !response.ok) toast('连接已恢复，但重新进入房间失败：' + response.error);
+        });
+      });
+      socket.on('connect_error', () => toast('网络连接异常，请检查网络后重试'));
+      socket.on('disconnect', () => { if (currentRoom) toast('网络断开，正在尝试重新连接…'); });
+    })();
+  </script>
+</body>
+</html>
